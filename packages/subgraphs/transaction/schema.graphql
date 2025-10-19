@@ -1,0 +1,296 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0",
+        import: ["@key", "@shareable", "@external", "@requires"])
+
+type Query {
+  order(id: ID!): Order
+  orders(
+    filter: OrderFilterInput
+    sort: OrderSortInput
+    pagination: PaginationInput
+  ): OrderConnection!
+  
+  cart(id: ID!): Cart
+  userCart: Cart
+}
+
+type Mutation {
+  createOrder(input: CreateOrderInput!): OrderMutationResponse!
+  updateOrder(id: ID!, input: UpdateOrderInput!): OrderMutationResponse!
+  cancelOrder(id: ID!, reason: String): OrderMutationResponse!
+  
+  addToCart(input: AddToCartInput!): CartMutationResponse!
+  updateCartItem(id: ID!, input: UpdateCartItemInput!): CartMutationResponse!
+  removeFromCart(id: ID!): CartMutationResponse!
+  clearCart: CartMutationResponse!
+  applyPromoCode(code: String!): CartMutationResponse!
+  removePromoCode: CartMutationResponse!
+}
+
+type Order @key(fields: "id") {
+  id: ID!
+  orderNumber: String!
+  user: User!
+  items: [OrderItem!]!
+  status: OrderStatus!
+  paymentStatus: PaymentStatus!
+  shippingAddress: Address!
+  billingAddress: Address!
+  subtotal: Float!
+  tax: Float!
+  shipping: Float!
+  discount: Float!
+  total: Float!
+  createdAt: String!
+  updatedAt: String!
+  notes: String
+  trackingNumber: String
+  estimatedDelivery: String
+  promoCode: PromoCode
+  paymentMethod: PaymentMethod
+  refunds: [Refund!]
+  history: [OrderHistory!]!
+}
+
+type OrderItem {
+  id: ID!
+  product: Product!
+  variant: ProductVariant
+  quantity: Int!
+  price: Float!
+  discount: Float!
+  total: Float!
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  FAILED
+}
+
+type OrderHistory {
+  id: ID!
+  status: OrderStatus!
+  timestamp: String!
+  note: String
+  user: User
+}
+
+type Cart @key(fields: "id") {
+  id: ID!
+  user: User
+  items: [CartItem!]!
+  subtotal: Float!
+  tax: Float!
+  shipping: Float!
+  discount: Float!
+  total: Float!
+  promoCode: PromoCode
+  createdAt: String!
+  updatedAt: String!
+  expiresAt: String
+}
+
+type CartItem {
+  id: ID!
+  product: Product!
+  variant: ProductVariant
+  quantity: Int!
+  price: Float!
+  total: Float!
+}
+
+type Address {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String!
+  postalCode: String!
+  country: String!
+  phone: String!
+  isDefault: Boolean!
+}
+
+type PromoCode @key(fields: "id") {
+  id: ID!
+  code: String!
+  discount: Float!
+  isPercentage: Boolean!
+  expiresAt: String
+}
+
+type PaymentMethod @key(fields: "id") {
+  id: ID!
+  type: PaymentMethodType!
+  lastFour: String
+  expiryMonth: Int
+  expiryYear: Int
+  cardBrand: String
+}
+
+enum PaymentMethodType {
+  CREDIT_CARD
+  PAYPAL
+  APPLE_PAY
+  GOOGLE_PAY
+  BANK_TRANSFER
+}
+
+type Refund {
+  id: ID!
+  amount: Float!
+  reason: String!
+  status: RefundStatus!
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+type OrderConnection {
+  edges: [OrderEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type OrderEdge {
+  node: Order!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input PaginationInput {
+  first: Int
+  after: String
+  last: Int
+  before: String
+}
+
+input OrderFilterInput {
+  search: String
+  status: [OrderStatus!]
+  paymentStatus: [PaymentStatus!]
+  dateFrom: String
+  dateTo: String
+  minTotal: Float
+  maxTotal: Float
+}
+
+input OrderSortInput {
+  field: OrderSortField!
+  direction: SortDirection!
+}
+
+enum OrderSortField {
+  ORDER_NUMBER
+  CREATED_AT
+  UPDATED_AT
+  TOTAL
+  STATUS
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input CreateOrderInput {
+  cartId: ID
+  items: [OrderItemInput!]
+  shippingAddressId: ID
+  billingAddressId: ID
+  shippingAddress: AddressInput
+  billingAddress: AddressInput
+  paymentMethodId: ID
+  notes: String
+  promoCode: String
+}
+
+input OrderItemInput {
+  productId: ID!
+  variantId: ID
+  quantity: Int!
+}
+
+input UpdateOrderInput {
+  status: OrderStatus
+  paymentStatus: PaymentStatus
+  trackingNumber: String
+  estimatedDelivery: String
+  notes: String
+}
+
+input AddToCartInput {
+  productId: ID!
+  variantId: ID
+  quantity: Int!
+}
+
+input UpdateCartItemInput {
+  quantity: Int!
+}
+
+input AddressInput {
+  firstName: String!
+  lastName: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String!
+  postalCode: String!
+  country: String!
+  phone: String!
+  isDefault: Boolean
+}
+
+type OrderMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  order: Order
+}
+
+type CartMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  cart: Cart
+}
+
+# External types from other subgraphs
+type User @key(fields: "id") @extends {
+  id: ID! @external
+}
+
+type Product @key(fields: "id") @extends {
+  id: ID! @external
+}
+
+type ProductVariant @key(fields: "id") @extends {
+  id: ID! @external
+}

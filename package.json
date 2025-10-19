@@ -1,0 +1,24 @@
+{
+  "name": "e-commerce-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @e-commerce/web dev",
+    "build": "pnpm --recursive build",
+    "start": "pnpm --filter @e-commerce/web start",
+    "lint": "pnpm --recursive lint",
+    "test": "pnpm --recursive test",
+    "db:generate": "pnpm --filter @e-commerce/database generate",
+    "db:migrate": "pnpm --filter @e-commerce/database migrate",
+    "db:seed": "pnpm --filter @e-commerce/database seed",
+    "docker:up": "docker-compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f docker/docker-compose.yml down",
+    "subgraphs:dev": "pnpm --parallel --filter \"@e-commerce/subgraph-*\" dev",
+    "router:dev": "pnpm --filter @e-commerce/api dev",
+    "compose": "pnpm rover supergraph compose --config ./apps/api/config/supergraph.yaml > ./apps/api/config/supergraph.graphql"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "typescript": "^5.1.6"
+  }
+}

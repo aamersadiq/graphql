@@ -1,0 +1,22 @@
+federation_version: 2
+subgraphs:
+  party:
+    routing_url: http://localhost:4001
+    schema:
+      subgraph_url: http://localhost:4001
+  service:
+    routing_url: http://localhost:4002
+    schema:
+      subgraph_url: http://localhost:4002
+  transaction:
+    routing_url: http://localhost:4003
+    schema:
+      subgraph_url: http://localhost:4003
+  payment:
+    routing_url: http://localhost:4004
+    schema:
+      subgraph_url: http://localhost:4004
+  arrangement:
+    routing_url: http://localhost:4005
+    schema:
+      subgraph_url: http://localhost:4005

@@ -1,0 +1,157 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0",
+        import: ["@key", "@shareable", "@external", "@requires"])
+
+type Query {
+  promotions: [Promotion!]!
+  promotion(id: ID!): Promotion
+  discounts: [Discount!]!
+  discount(id: ID!): Discount
+  couponByCode(code: String!): Coupon
+}
+
+type Mutation {
+  createPromotion(input: CreatePromotionInput!): Promotion!
+  updatePromotion(id: ID!, input: UpdatePromotionInput!): Promotion!
+  deletePromotion(id: ID!): Boolean!
+  
+  createDiscount(input: CreateDiscountInput!): Discount!
+  updateDiscount(id: ID!, input: UpdateDiscountInput!): Discount!
+  deleteDiscount(id: ID!): Boolean!
+  
+  createCoupon(input: CreateCouponInput!): Coupon!
+  updateCoupon(id: ID!, input: UpdateCouponInput!): Coupon!
+  deleteCoupon(id: ID!): Boolean!
+  applyCoupon(code: String!, cartId: ID!): CartDiscount!
+  removeCoupon(cartId: ID!): Boolean!
+}
+
+type Promotion @key(fields: "id") {
+  id: ID!
+  name: String!
+  description: String
+  startDate: String!
+  endDate: String!
+  isActive: Boolean!
+  discounts: [Discount!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Discount @key(fields: "id") {
+  id: ID!
+  name: String!
+  description: String
+  discountType: DiscountType!
+  discountValue: Float!
+  minPurchase: Float
+  maxDiscount: Float
+  applicableProducts: [ID!]
+  applicableCategories: [ID!]
+  startDate: String!
+  endDate: String!
+  isActive: Boolean!
+  promotionId: ID
+  promotion: Promotion
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Coupon @key(fields: "id") {
+  id: ID!
+  code: String!
+  discountType: DiscountType!
+  discountValue: Float!
+  minPurchase: Float
+  maxDiscount: Float
+  maxUses: Int
+  usesCount: Int!
+  startDate: String!
+  endDate: String!
+  isActive: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type CartDiscount {
+  cartId: ID!
+  discountAmount: Float!
+  couponCode: String
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  BUY_X_GET_Y
+  FREE_SHIPPING
+}
+
+input CreatePromotionInput {
+  name: String!
+  description: String
+  startDate: String!
+  endDate: String!
+  isActive: Boolean!
+}
+
+input UpdatePromotionInput {
+  name: String
+  description: String
+  startDate: String
+  endDate: String
+  isActive: Boolean
+}
+
+input CreateDiscountInput {
+  name: String!
+  description: String
+  discountType: DiscountType!
+  discountValue: Float!
+  minPurchase: Float
+  maxDiscount: Float
+  applicableProducts: [ID!]
+  applicableCategories: [ID!]
+  startDate: String!
+  endDate: String!
+  isActive: Boolean!
+  promotionId: ID
+}
+
+input UpdateDiscountInput {
+  name: String
+  description: String
+  discountType: DiscountType
+  discountValue: Float
+  minPurchase: Float
+  maxDiscount: Float
+  applicableProducts: [ID!]
+  applicableCategories: [ID!]
+  startDate: String
+  endDate: String
+  isActive: Boolean
+  promotionId: ID
+}
+
+input CreateCouponInput {
+  code: String!
+  discountType: DiscountType!
+  discountValue: Float!
+  minPurchase: Float
+  maxDiscount: Float
+  maxUses: Int
+  startDate: String!
+  endDate: String!
+  isActive: Boolean!
+}
+
+input UpdateCouponInput {
+  code: String
+  discountType: DiscountType
+  discountValue: Float
+  minPurchase: Float
+  maxDiscount: Float
+  maxUses: Int
+  startDate: String
+  endDate: String
+  isActive: Boolean
+}

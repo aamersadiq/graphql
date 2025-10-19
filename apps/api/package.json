@@ -1,0 +1,26 @@
+{
+  "name": "@e-commerce/api-gateway",
+  "version": "1.0.0",
+  "description": "GraphQL API Gateway using Apollo Router",
+  "main": "index.js",
+  "scripts": {
+    "start": "rover supergraph compose --config ./config/supergraph.yaml > ./config/supergraph.graphql && node ./node_modules/.bin/router --supergraph ./config/supergraph.graphql",
+    "dev": "rover supergraph compose --config ./config/supergraph.yaml > ./config/supergraph.graphql && node ./node_modules/.bin/router --supergraph ./config/supergraph.graphql --dev",
+    "compose": "rover supergraph compose --config ./config/supergraph.yaml > ./config/supergraph.graphql",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@apollo/gateway": "^2.5.6",
+    "@apollo/router": "^1.13.0",
+    "@apollo/server": "^4.9.5",
+    "graphql": "^16.8.1"
+  },
+  "devDependencies": {
+    "@apollo/rover": "^0.21.0",
+    "@types/jest": "^29.5.10",
+    "@types/node": "^20.10.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.2"
+  }
+}

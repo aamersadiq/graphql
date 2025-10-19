@@ -1,0 +1,264 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0",
+        import: ["@key", "@shareable", "@external", "@requires"])
+
+type Query {
+  paymentMethod(id: ID!): PaymentMethod
+  paymentMethods: [PaymentMethod!]!
+  
+  payment(id: ID!): Payment
+  payments(
+    filter: PaymentFilterInput
+    sort: PaymentSortInput
+    pagination: PaginationInput
+  ): PaymentConnection!
+}
+
+type Mutation {
+  createPaymentIntent(input: CreatePaymentIntentInput!): PaymentIntentResponse!
+  confirmPaymentIntent(id: ID!, paymentMethodId: ID!): PaymentIntentResponse!
+  
+  createPaymentMethod(input: CreatePaymentMethodInput!): PaymentMethodResponse!
+  updatePaymentMethod(id: ID!, input: UpdatePaymentMethodInput!): PaymentMethodResponse!
+  deletePaymentMethod(id: ID!): DeleteMutationResponse!
+  
+  refundPayment(input: RefundPaymentInput!): RefundResponse!
+}
+
+type PaymentMethod @key(fields: "id") {
+  id: ID!
+  user: User!
+  type: PaymentMethodType!
+  provider: PaymentProvider!
+  isDefault: Boolean!
+  lastFour: String
+  expiryMonth: Int
+  expiryYear: Int
+  cardBrand: String
+  billingAddress: Address
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum PaymentMethodType {
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  APPLE_PAY
+  GOOGLE_PAY
+  BANK_TRANSFER
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  ADYEN
+  BRAINTREE
+}
+
+type Payment @key(fields: "id") {
+  id: ID!
+  order: Order!
+  amount: Float!
+  currency: String!
+  status: PaymentStatus!
+  paymentMethod: PaymentMethod
+  provider: PaymentProvider!
+  providerPaymentId: String!
+  refunds: [Refund!]!
+  metadata: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  AUTHORIZED
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+type Refund @key(fields: "id") {
+  id: ID!
+  payment: Payment!
+  amount: Float!
+  currency: String!
+  reason: String!
+  status: RefundStatus!
+  providerRefundId: String!
+  metadata: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+type PaymentIntent {
+  id: ID!
+  clientSecret: String!
+  amount: Float!
+  currency: String!
+  status: PaymentIntentStatus!
+  paymentMethod: PaymentMethod
+  metadata: JSON
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum PaymentIntentStatus {
+  REQUIRES_PAYMENT_METHOD
+  REQUIRES_CONFIRMATION
+  REQUIRES_ACTION
+  PROCESSING
+  SUCCEEDED
+  CANCELED
+  FAILED
+}
+
+type PaymentConnection {
+  edges: [PaymentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PaymentEdge {
+  node: Payment!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input PaginationInput {
+  first: Int
+  after: String
+  last: Int
+  before: String
+}
+
+input PaymentFilterInput {
+  orderId: ID
+  status: [PaymentStatus!]
+  dateFrom: String
+  dateTo: String
+  minAmount: Float
+  maxAmount: Float
+}
+
+input PaymentSortInput {
+  field: PaymentSortField!
+  direction: SortDirection!
+}
+
+enum PaymentSortField {
+  CREATED_AT
+  UPDATED_AT
+  AMOUNT
+  STATUS
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input CreatePaymentIntentInput {
+  orderId: ID!
+  amount: Float!
+  currency: String!
+  paymentMethodId: ID
+  metadata: JSON
+}
+
+input CreatePaymentMethodInput {
+  type: PaymentMethodType!
+  provider: PaymentProvider!
+  token: String!
+  isDefault: Boolean
+  billingAddressId: ID
+  billingAddress: AddressInput
+}
+
+input UpdatePaymentMethodInput {
+  isDefault: Boolean
+  expiryMonth: Int
+  expiryYear: Int
+  billingAddressId: ID
+  billingAddress: AddressInput
+}
+
+input RefundPaymentInput {
+  paymentId: ID!
+  amount: Float!
+  reason: String!
+  metadata: JSON
+}
+
+input AddressInput {
+  firstName: String!
+  lastName: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String!
+  postalCode: String!
+  country: String!
+  phone: String!
+}
+
+type PaymentIntentResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  paymentIntent: PaymentIntent
+}
+
+type PaymentMethodResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  paymentMethod: PaymentMethod
+}
+
+type RefundResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  refund: Refund
+}
+
+type DeleteMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  id: ID!
+}
+
+# Custom scalar for JSON data
+scalar JSON
+
+# External types from other subgraphs
+type User @key(fields: "id") @extends {
+  id: ID! @external
+}
+
+type Order @key(fields: "id") @extends {
+  id: ID! @external
+}
+
+type Address @key(fields: "id") @extends {
+  id: ID! @external
+}

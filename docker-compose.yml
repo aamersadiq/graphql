@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: ecommerce-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecommerce
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    container_name: ecommerce-api
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ecommerce
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - node_modules:/app/node_modules
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    container_name: ecommerce-web
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_GRAPHQL_URL: http://api:4000/graphql
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: your-nextauth-secret-key-change-in-production
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_your_publishable_key
+      STRIPE_SECRET_KEY: sk_test_your_secret_key
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - node_modules:/app/node_modules
+
+volumes:
+  postgres-data:
+  node_modules:

@@ -1,0 +1,295 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0",
+        import: ["@key", "@shareable", "@external", "@requires"])
+
+type Query {
+  product(id: ID!): Product
+  products(
+    filter: ProductFilterInput
+    sort: ProductSortInput
+    pagination: PaginationInput
+  ): ProductConnection!
+  
+  category(id: ID!): Category
+  categories(
+    filter: CategoryFilterInput
+    pagination: PaginationInput
+  ): CategoryConnection!
+}
+
+type Mutation {
+  createProduct(input: CreateProductInput!): ProductMutationResponse!
+  updateProduct(id: ID!, input: UpdateProductInput!): ProductMutationResponse!
+  deleteProduct(id: ID!): DeleteMutationResponse!
+  
+  createCategory(input: CreateCategoryInput!): CategoryMutationResponse!
+  updateCategory(id: ID!, input: UpdateCategoryInput!): CategoryMutationResponse!
+  deleteCategory(id: ID!): DeleteMutationResponse!
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+  name: String!
+  description: String
+  price: Float!
+  compareAtPrice: Float
+  images: [Image!]
+  thumbnail: Image
+  categories: [Category!]
+  attributes: [ProductAttribute!]
+  variants: [ProductVariant!]
+  createdAt: String!
+  updatedAt: String!
+  isActive: Boolean!
+  inventory: Inventory!
+  slug: String!
+  seo: SEO
+}
+
+type ProductVariant {
+  id: ID!
+  name: String!
+  sku: String!
+  price: Float!
+  compareAtPrice: Float
+  attributes: [ProductAttribute!]!
+  inventory: Inventory!
+  images: [Image!]
+}
+
+type ProductAttribute {
+  name: String!
+  value: String!
+}
+
+type Inventory {
+  quantity: Int!
+  allowBackorder: Boolean!
+  lowStockThreshold: Int
+  status: InventoryStatus!
+}
+
+enum InventoryStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+  BACKORDER
+}
+
+type Category @key(fields: "id") {
+  id: ID!
+  name: String!
+  description: String
+  slug: String!
+  parent: Category
+  children: [Category!]
+  products(
+    filter: ProductFilterInput
+    sort: ProductSortInput
+    pagination: PaginationInput
+  ): ProductConnection!
+  image: Image
+  seo: SEO
+  isActive: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Image {
+  id: ID!
+  url: String!
+  altText: String
+  width: Int
+  height: Int
+}
+
+type SEO {
+  title: String
+  description: String
+  keywords: [String!]
+  canonicalUrl: String
+  ogImage: Image
+}
+
+type ProductConnection {
+  edges: [ProductEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductEdge {
+  node: Product!
+  cursor: String!
+}
+
+type CategoryConnection {
+  edges: [CategoryEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CategoryEdge {
+  node: Category!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input PaginationInput {
+  first: Int
+  after: String
+  last: Int
+  before: String
+}
+
+input ProductFilterInput {
+  search: String
+  categoryIds: [ID!]
+  minPrice: Float
+  maxPrice: Float
+  isActive: Boolean
+  attributes: [AttributeFilterInput!]
+  inventoryStatus: InventoryStatus
+}
+
+input AttributeFilterInput {
+  name: String!
+  values: [String!]!
+}
+
+input ProductSortInput {
+  field: ProductSortField!
+  direction: SortDirection!
+}
+
+enum ProductSortField {
+  NAME
+  PRICE
+  CREATED_AT
+  UPDATED_AT
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input CategoryFilterInput {
+  search: String
+  parentId: ID
+  isActive: Boolean
+}
+
+input CreateProductInput {
+  name: String!
+  description: String
+  price: Float!
+  compareAtPrice: Float
+  categoryIds: [ID!]
+  attributes: [ProductAttributeInput!]
+  variants: [ProductVariantInput!]
+  isActive: Boolean!
+  inventoryInput: InventoryInput!
+  slug: String!
+  seoInput: SEOInput
+  images: [ImageInput!]
+  thumbnailId: ID
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  compareAtPrice: Float
+  categoryIds: [ID!]
+  attributes: [ProductAttributeInput!]
+  variants: [ProductVariantInput!]
+  isActive: Boolean
+  inventoryInput: InventoryInput
+  slug: String
+  seoInput: SEOInput
+  images: [ImageInput!]
+  thumbnailId: ID
+}
+
+input ProductAttributeInput {
+  name: String!
+  value: String!
+}
+
+input ProductVariantInput {
+  name: String!
+  sku: String!
+  price: Float!
+  compareAtPrice: Float
+  attributes: [ProductAttributeInput!]!
+  inventoryInput: InventoryInput!
+  images: [ImageInput!]
+}
+
+input InventoryInput {
+  quantity: Int!
+  allowBackorder: Boolean!
+  lowStockThreshold: Int
+}
+
+input ImageInput {
+  url: String!
+  altText: String
+  width: Int
+  height: Int
+}
+
+input SEOInput {
+  title: String
+  description: String
+  keywords: [String!]
+  canonicalUrl: String
+  ogImageId: ID
+}
+
+input CreateCategoryInput {
+  name: String!
+  description: String
+  slug: String!
+  parentId: ID
+  isActive: Boolean!
+  seoInput: SEOInput
+  imageInput: ImageInput
+}
+
+input UpdateCategoryInput {
+  name: String
+  description: String
+  slug: String
+  parentId: ID
+  isActive: Boolean
+  seoInput: SEOInput
+  imageInput: ImageInput
+}
+
+type ProductMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  product: Product
+}
+
+type CategoryMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  category: Category
+}
+
+type DeleteMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  id: ID!
+}

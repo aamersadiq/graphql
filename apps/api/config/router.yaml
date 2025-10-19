@@ -1,0 +1,46 @@
+headers:
+  all:
+    request:
+      - propagate:
+          named: "authorization"
+
+cors:
+  origins:
+    - http://localhost:3000
+    - https://studio.apollographql.com
+  allow_credentials: true
+
+authentication:
+  jwt:
+    header_name: "authorization"
+    header_value_prefix: "Bearer "
+    jwks:
+      - url: "http://localhost:4001/.well-known/jwks.json"
+
+health_check:
+  enabled: true
+  path: "/.well-known/apollo/server-health"
+
+sandbox:
+  enabled: true
+
+supergraph:
+  introspection: true
+
+plugins:
+  - name: "apollo.telemetry"
+    config:
+      service_name: "e-commerce-platform"
+
+telemetry:
+  apollo:
+    send_headers:
+      - "authorization"
+      - "content-type"
+      - "user-agent"
+    send_variable_values:
+      all: true
+    send_query_document: true
+
+include_subgraph_errors:
+  all: true
