@@ -12,8 +12,6 @@ This project implements a modern web application architecture with:
 - **React Components**: Following atomic design principles
 - **Stripe Integration**: For secure payment processing
 
-![Architecture Diagram](docs/architecture-diagram.png)
-
 ## Key Features
 
 - **Domain-Driven Design**: Clear separation of concerns with domain-specific subgraphs
@@ -73,23 +71,27 @@ This project implements a modern web application architecture with:
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/ecommerce-platform.git
    cd ecommerce-platform
    ```
 
 2. Install dependencies:
+
    ```bash
    pnpm install
    ```
 
 3. Set up environment variables:
+
    ```bash
    cp apps/web/.env.example apps/web/.env.local
    cp packages/database/.env.example packages/database/.env
    ```
 
 4. Set up the database:
+
    ```bash
    pnpm db:setup
    ```
